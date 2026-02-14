@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { DashboardWidgetLayoutItem } from './dashboard-widget';
+import { DashboardWidgetLayoutItem } from '../components/dashboard-widget';
 
 export interface DashboardLayout {
   widgets: DashboardWidgetLayoutItem[];

@@ -1,3 +1,3 @@
-export * from './dashboard.component';
-export * from './dashboard-widget';
-export * from './dashboard-layout.service';
+export * from './pages/dashboard.component';
+export * from './components/dashboard-widget';
+export * from './services/dashboard-layout.service';

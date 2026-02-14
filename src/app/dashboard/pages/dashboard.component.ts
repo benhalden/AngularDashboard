@@ -2,14 +2,14 @@ import { CommonModule } from '@angular/common';
 import { CdkDragDrop, CdkDragMove, DragDropModule } from '@angular/cdk/drag-drop';
 import { Component, ElementRef, Input, OnChanges, SimpleChanges, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DashboardLayoutService } from './dashboard-layout.service';
+import { DashboardLayoutService } from '../services/dashboard-layout.service';
 import {
   DASHBOARD_WIDGET_SIZE_OPTIONS,
   DashboardWidgetDefinition,
   DashboardWidgetLayoutItem,
   DashboardWidgetSize,
   DashboardWidgetSizeOption
-} from './dashboard-widget';
+} from '../components/dashboard-widget';
 
 interface DisplayedDashboardWidget {
   id: string;

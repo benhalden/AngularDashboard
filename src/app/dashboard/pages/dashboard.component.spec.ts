@@ -2,8 +2,8 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { DashboardComponent } from './dashboard.component';
-import { DashboardLayoutService } from './dashboard-layout.service';
-import { DashboardWidgetDefinition } from './dashboard-widget';
+import { DashboardLayoutService } from '../services/dashboard-layout.service';
+import { DashboardWidgetDefinition } from '../components/dashboard-widget';
 
 @Component({
   selector: 'app-widget-a',
