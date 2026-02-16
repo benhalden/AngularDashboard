@@ -90,7 +90,11 @@ h2 {
 
 .add-widget-panel-header h3 {
   margin: 0;
-  font-size: 1rem;
+  padding-top: 0.25rem;
+  padding-left: 0.75rem;
+  font-size: 2rem;
+  font-style: italic;
+  color: #b9b9b9;
 }
 
 .add-widget-panel-body {
@@ -109,8 +113,8 @@ h2 {
   box-sizing: border-box;
   min-height: 4.5rem;
   height: 6rem;
-  border: 1px solid #d5d5d5;
-  border-radius: 8px;
+  border: 0px solid #d5d5d5;
+  border-radius: 0px;
   background: #fff;
   display: grid;
   grid-template-columns: 56px minmax(0, 1fr);
@@ -121,7 +125,7 @@ h2 {
 }
 
 .add-widget-option:hover {
-  border-color: #9f9f9f;
+  background-color: #eeeaea;
 }
 
 .add-widget-thumbnail {
