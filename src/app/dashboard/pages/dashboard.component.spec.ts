@@ -30,9 +30,9 @@ describe('DashboardComponent', () => {
   let layoutService: jasmine.SpyObj<DashboardLayoutService>;
 
   const widgetDefinitions: DashboardWidgetDefinition[] = [
-    { id: 'a', title: 'Widget A', component: WidgetAComponent, defaultSize: '1x1', allowedSizes: ['1x1', '2x1'] },
-    { id: 'b', title: 'Widget B', component: WidgetBComponent, defaultSize: '2x2', allowedSizes: ['2x2', '3x2'] },
-    { id: 'c', title: 'Widget C', component: WidgetCComponent, defaultSize: '4x3', allowedSizes: ['4x3'] }
+    { id: 'a', title: 'Widget A', component: WidgetAComponent, defaultWidth: 1, defaultHeight: 1, allowedWidths: [1, 2], allowedHeights: [1] },
+    { id: 'b', title: 'Widget B', component: WidgetBComponent, defaultWidth: 2, defaultHeight: 2, allowedWidths: [2, 3], allowedHeights: [2] },
+    { id: 'c', title: 'Widget C', component: WidgetCComponent, defaultWidth: 4, defaultHeight: 3, allowedWidths: [4], allowedHeights: [3] }
   ];
 
   beforeEach(async () => {

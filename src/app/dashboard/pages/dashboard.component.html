@@ -135,22 +135,36 @@
 
             @if (isWidgetMenuOpen(widget.id)) {
               <div class="widget-edit-menu" role="menu">
-                <label [attr.for]="'size-' + widget.id">Size</label>
-                <select
-                  class="form-select form-select-sm"
-                  [id]="'size-' + widget.id"
-                  [ngModel]="widget.size"
-                  (ngModelChange)="updateWidgetSize(widget.id, $event)"
-                >
-                  @for (sizeOption of sizeOptions; track sizeOption.value) {
-                    <option
-                      [value]="sizeOption.value"
-                      [disabled]="!widget.allowedSizes.includes(sizeOption.value)"
+                <div class="size-select-row">
+                  <div class="size-field">
+                    <label [attr.for]="'width-' + widget.id">Width</label>
+                    <select
+                      class="form-select form-select-sm"
+                      [id]="'width-' + widget.id"
+                      [ngModel]="gridColumnSpan(widget.size)"
+                      (ngModelChange)="updateWidgetWidth(widget.id, $event)"
                     >
-                      {{ sizeOption.label }}
-                    </option>
-                  }
-                </select>
+                      @for (width of widget.allowedWidths; track width) {
+                        <option [ngValue]="width">{{ width }}</option>
+                      }
+                    </select>
+                  </div>
+
+                  <div class="size-field">
+                    <label [attr.for]="'height-' + widget.id">Height</label>
+                    <select
+                      class="form-select form-select-sm"
+                      [id]="'height-' + widget.id"
+                      [ngModel]="gridRowSpan(widget.size)"
+                      (ngModelChange)="updateWidgetHeight(widget.id, $event)"
+                    >
+                      @for (height of widget.allowedHeights; track height) {
+                        <option [ngValue]="height">{{ height }}</option>
+                      }
+                    </select>
+                  </div>
+                </div>
+
                 <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeWidget(widget.id)">Remove</button>
               </div>
             }

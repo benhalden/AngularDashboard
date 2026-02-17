@@ -7,8 +7,7 @@ import {
   DASHBOARD_WIDGET_SIZE_OPTIONS,
   DashboardWidgetDefinition,
   DashboardWidgetLayoutItem,
-  DashboardWidgetSize,
-  DashboardWidgetSizeOption
+  DashboardWidgetSize
 } from '../components/dashboard-widget';
 
 interface DisplayedDashboardWidget {
@@ -16,7 +15,8 @@ interface DisplayedDashboardWidget {
   title: string;
   component: DashboardWidgetDefinition['component'];
   size: DashboardWidgetSize;
-  allowedSizes: DashboardWidgetSize[];
+  allowedWidths: number[];
+  allowedHeights: number[];
   column: number;
   row: number;
 }
@@ -52,9 +52,8 @@ export class DashboardComponent implements OnChanges {
   dropPreview: DropPreview | null = null;
   dropPreviewStyles: Record<string, string> | null = null;
   openWidgetMenuId: string | null = null;
-  readonly sizeOptions: DashboardWidgetSizeOption[] = DASHBOARD_WIDGET_SIZE_OPTIONS;
   readonly gridColumns = GRID_COLUMNS;
-  readonly defaultWidgetThumbnailImageUrl = 'assets/images/default.png';
+  readonly defaultWidgetThumbnailImageUrl = 'assets/images/abc_logo.svg';
 
   private readonly layoutService = inject(DashboardLayoutService);
 
@@ -79,7 +78,8 @@ export class DashboardComponent implements OnChanges {
           title: definition.title,
           component: definition.component,
           size: layoutItem.size,
-          allowedSizes: this.allowedSizesForWidget(definition),
+          allowedWidths: this.allowedWidthsForWidget(definition),
+          allowedHeights: this.allowedHeightsForWidget(definition),
           column: layoutItem.column ?? 1,
           row: layoutItem.row ?? 1
         };
@@ -263,6 +263,30 @@ export class DashboardComponent implements OnChanges {
     this.openWidgetMenuId = null;
   }
 
+  updateWidgetWidth(widgetId: string, nextWidth: number): void {
+    const definition = this.widgetDefinitions.find((widget) => widget.id === widgetId);
+    const currentItem = this.displayedWidgetItems.find((item) => item.id === widgetId);
+
+    if (!definition || !currentItem) {
+      return;
+    }
+
+    const currentHeight = this.gridRowSpan(currentItem.size);
+    this.updateWidgetSize(widgetId, `${nextWidth}x${currentHeight}` as DashboardWidgetSize);
+  }
+
+  updateWidgetHeight(widgetId: string, nextHeight: number): void {
+    const definition = this.widgetDefinitions.find((widget) => widget.id === widgetId);
+    const currentItem = this.displayedWidgetItems.find((item) => item.id === widgetId);
+
+    if (!definition || !currentItem) {
+      return;
+    }
+
+    const currentWidth = this.gridColumnSpan(currentItem.size);
+    this.updateWidgetSize(widgetId, `${currentWidth}x${nextHeight}` as DashboardWidgetSize);
+  }
+
   onDragStarted(widgetId: string): void {
     if (!this.isEditMode) {
       return;
@@ -394,21 +418,72 @@ export class DashboardComponent implements OnChanges {
   }
 
   private allowedSizesForWidget(widget: DashboardWidgetDefinition): DashboardWidgetSize[] {
-    if (widget.allowedSizes?.length) {
-      return widget.allowedSizes;
+    const allowedWidths = this.allowedWidthsForWidget(widget);
+    const allowedHeights = this.allowedHeightsForWidget(widget);
+    const sizes: DashboardWidgetSize[] = [];
+
+    for (const width of allowedWidths) {
+      for (const height of allowedHeights) {
+        sizes.push(`${width}x${height}` as DashboardWidgetSize);
+      }
     }
 
-    return this.sizeOptions.map((option) => option.value);
+    return sizes;
+  }
+
+  private allowedWidthsForWidget(widget: DashboardWidgetDefinition): number[] {
+    const allowedWidths = this.sanitizedDimensions(widget.allowedWidths);
+
+    if (allowedWidths.length) {
+      return allowedWidths;
+    }
+
+    return this.sanitizedDimensions(
+      DASHBOARD_WIDGET_SIZE_OPTIONS.map((option) => this.gridColumnSpan(option.value))
+    );
+  }
+
+  private allowedHeightsForWidget(widget: DashboardWidgetDefinition): number[] {
+    const allowedHeights = this.sanitizedDimensions(widget.allowedHeights);
+
+    if (allowedHeights.length) {
+      return allowedHeights;
+    }
+
+    return this.sanitizedDimensions(
+      DASHBOARD_WIDGET_SIZE_OPTIONS.map((option) => this.gridRowSpan(option.value))
+    );
   }
 
   private defaultSizeForWidget(widget: DashboardWidgetDefinition): DashboardWidgetSize {
     const allowedSizes = this.allowedSizesForWidget(widget);
+    const defaultSize =
+      Number.isInteger(widget.defaultWidth) && Number.isInteger(widget.defaultHeight) && (widget.defaultWidth ?? 0) > 0 && (widget.defaultHeight ?? 0) > 0
+        ? (`${widget.defaultWidth}x${widget.defaultHeight}` as DashboardWidgetSize)
+        : null;
 
-    if (widget.defaultSize && allowedSizes.includes(widget.defaultSize)) {
-      return widget.defaultSize;
+    if (defaultSize && allowedSizes.includes(defaultSize)) {
+      return defaultSize;
     }
 
     return allowedSizes[0] ?? '2x2';
+  }
+
+  private sanitizedDimensions(values?: number[]): number[] {
+    if (!values?.length) {
+      return [];
+    }
+
+    const seen = new Set<number>();
+
+    return values.filter((value) => {
+      if (!Number.isInteger(value) || value <= 0 || seen.has(value)) {
+        return false;
+      }
+
+      seen.add(value);
+      return true;
+    });
   }
 
   private layoutWithPinnedWidget(
