@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { CdkDragDrop, CdkDragMove, DragDropModule } from '@angular/cdk/drag-drop';
-import { Component, ElementRef, HostListener, Input, OnChanges, SimpleChanges, ViewChild, inject } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, Input, OnChanges, SimpleChanges, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DashboardLayoutService } from '../services/dashboard-layout.service';
 import {
@@ -37,7 +37,7 @@ const MAX_LAYOUT_SEARCH_ROWS = 200;
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss'
 })
-export class DashboardComponent implements OnChanges {
+export class DashboardComponent implements OnChanges, AfterViewInit {
   @Input({ required: true }) widgetDefinitions: DashboardWidgetDefinition[] = [];
   @Input() dashboardId = 'default';
   @Input() initialWidgetIds: string[] = [];
@@ -47,6 +47,7 @@ export class DashboardComponent implements OnChanges {
   selectedWidgetId = '';
   isAddWidgetMenuOpen = false;
   isEditMode = false;
+  responsiveLayout = true;
   activeDragWidgetId: string | null = null;
   lastDragBoundsPoint: { x: number; y: number } | null = null;
   dropPreview: DropPreview | null = null;
@@ -54,8 +55,13 @@ export class DashboardComponent implements OnChanges {
   openWidgetMenuId: string | null = null;
   readonly gridColumns = GRID_COLUMNS;
   readonly defaultWidgetThumbnailImageUrl = 'assets/images/abc_logo.svg';
+  dashboardGridWidthPx: string | null = null;
 
   private readonly layoutService = inject(DashboardLayoutService);
+
+  ngAfterViewInit(): void {
+    this.applyResponsiveLayoutMode();
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['widgetDefinitions'] || changes['initialWidgetIds'] || changes['dashboardId']) {
@@ -98,6 +104,23 @@ export class DashboardComponent implements OnChanges {
     if (!this.isEditMode) {
       this.openWidgetMenuId = null;
       this.isAddWidgetMenuOpen = false;
+    }
+  }
+
+  toggleResponsiveLayout(nextValue: boolean): void {
+    if (!this.isEditMode) {
+      return;
+    }
+
+    this.responsiveLayout = nextValue;
+    this.applyResponsiveLayoutMode();
+    this.persistLayout();
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    if (!this.responsiveLayout && !this.dashboardGridWidthPx) {
+      this.lockCurrentGridWidth();
     }
   }
 
@@ -389,6 +412,8 @@ export class DashboardComponent implements OnChanges {
         ? this.initialWidgetIds.map((id) => ({ id, size: '2x2' as DashboardWidgetSize, column: undefined, row: undefined }))
         : this.displayedWidgetItems;
 
+    this.responsiveLayout = persistedLayout?.responsiveLayout !== false;
+
     const uniqueDisplayedItems: DashboardWidgetLayoutItem[] = [];
 
     for (const item of sourceItems) {
@@ -411,6 +436,7 @@ export class DashboardComponent implements OnChanges {
     }
 
     this.displayedWidgetItems = this.layoutWithPinnedWidget(uniqueDisplayedItems);
+    this.applyResponsiveLayoutMode();
     this.persistLayout();
     if (!this.availableWidgets().some((widget) => widget.id === this.selectedWidgetId)) {
       this.selectedWidgetId = '';
@@ -752,6 +778,32 @@ export class DashboardComponent implements OnChanges {
   }
 
   private persistLayout(): void {
-    this.layoutService.saveLayout(this.dashboardId, { widgets: this.displayedWidgetItems });
+    this.layoutService.saveLayout(this.dashboardId, {
+      widgets: this.displayedWidgetItems,
+      responsiveLayout: this.responsiveLayout
+    });
+  }
+
+  private applyResponsiveLayoutMode(): void {
+    if (this.responsiveLayout) {
+      this.dashboardGridWidthPx = null;
+      return;
+    }
+
+    this.lockCurrentGridWidth();
+  }
+
+  private lockCurrentGridWidth(): void {
+    const dashboardGrid = this.dashboardGridRef?.nativeElement;
+
+    if (!dashboardGrid) {
+      return;
+    }
+
+    const width = Math.round(dashboardGrid.getBoundingClientRect().width);
+
+    if (width > 0) {
+      this.dashboardGridWidthPx = `${width}px`;
+    }
   }
 }

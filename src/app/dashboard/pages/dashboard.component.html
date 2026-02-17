@@ -2,6 +2,17 @@
   <div class="dashboard-header">
     <div class="dashboard-header-actions">
       @if (isEditMode) {
+        <div class="form-check form-switch responsive-layout-toggle">
+          <input
+            id="responsive-layout-toggle"
+            type="checkbox"
+            class="form-check-input"
+            [ngModel]="responsiveLayout"
+            (ngModelChange)="toggleResponsiveLayout($event)"
+          />
+          <label class="form-check-label" for="responsive-layout-toggle">responsive layout</label>
+        </div>
+
         <div class="add-widget-menu-container" (click)="$event.stopPropagation()">
           <button
             type="button"
@@ -83,6 +94,7 @@
     class="dashboard-grid"
     [class.edit-mode]="isEditMode"
     [class.dragging]="!!activeDragWidgetId"
+    [style.width]="dashboardGridWidthPx"
     [cdkDropListData]="displayedWidgets()"
     [cdkDropListSortingDisabled]="true"
     [cdkDropListDisabled]="!isEditMode"

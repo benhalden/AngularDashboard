@@ -28,6 +28,22 @@
   gap: 0.5rem;
 }
 
+.responsive-layout-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.responsive-layout-toggle .form-check-input {
+  margin: 0;
+}
+
+.responsive-layout-toggle .form-check-label {
+  font-size: 0.85rem;
+  text-transform: lowercase;
+}
+
 h2 {
   margin: 0;
 }

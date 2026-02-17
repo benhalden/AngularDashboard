@@ -60,7 +60,8 @@ describe('DashboardComponent', () => {
       widgets: [
         { id: 'a', size: '1x1', column: 1, row: 1 },
         { id: 'c', size: '4x3', column: 2, row: 1 }
-      ]
+      ],
+      responsiveLayout: true
     });
   });
 
@@ -69,7 +70,8 @@ describe('DashboardComponent', () => {
       widgets: [
         { id: 'c', size: '4x3', column: 6, row: 2 },
         { id: 'b', size: '3x2', column: 1, row: 4 }
-      ]
+      ],
+      responsiveLayout: false
     });
 
     const fixture = TestBed.createComponent(DashboardComponent);
@@ -120,7 +122,8 @@ describe('DashboardComponent', () => {
       widgets: [
         { id: 'a', size: '1x1', column: 1, row: 1 },
         { id: 'b', size: '2x2', column: 2, row: 1 }
-      ]
+      ],
+      responsiveLayout: true
     });
   });
 
@@ -138,7 +141,8 @@ describe('DashboardComponent', () => {
     expect(component.displayedWidgets().map((widget) => widget.id)).toEqual(['b']);
     expect(component.availableWidgets().map((widget) => widget.id)).toEqual(['a', 'c']);
     expect(layoutService.saveLayout).toHaveBeenCalledWith('main', {
-      widgets: [{ id: 'b', size: '2x2', column: 2, row: 1 }]
+      widgets: [{ id: 'b', size: '2x2', column: 2, row: 1 }],
+      responsiveLayout: true
     });
   });
 
@@ -155,7 +159,57 @@ describe('DashboardComponent', () => {
 
     expect(component.displayedWidgets().map((widget) => widget.size)).toEqual(['2x1']);
     expect(layoutService.saveLayout).toHaveBeenCalledWith('main', {
-      widgets: [{ id: 'a', size: '2x1', column: 1, row: 1 }]
+      widgets: [{ id: 'a', size: '2x1', column: 1, row: 1 }],
+      responsiveLayout: true
+    });
+  });
+
+  it('restores responsive layout toggle state from persisted layout', () => {
+    layoutService.loadLayout.and.returnValue({
+      widgets: [{ id: 'a', size: '1x1', column: 1, row: 1 }],
+      responsiveLayout: false
+    });
+
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.componentRef.setInput('widgetDefinitions', widgetDefinitions);
+    fixture.componentRef.setInput('dashboardId', 'main');
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.responsiveLayout).toBeFalse();
+  });
+
+  it('toggles responsive layout and persists the setting', () => {
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.componentRef.setInput('widgetDefinitions', widgetDefinitions);
+    fixture.componentRef.setInput('dashboardId', 'main');
+    fixture.componentRef.setInput('initialWidgetIds', ['a']);
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    component.toggleEditMode();
+
+    const grid = document.createElement('div');
+    spyOn(grid, 'getBoundingClientRect').and.returnValue({
+      left: 0,
+      top: 0,
+      width: 1200,
+      height: 700,
+      right: 1200,
+      bottom: 700,
+      x: 0,
+      y: 0,
+      toJSON: () => ({})
+    } as DOMRect);
+
+    (component as any).dashboardGridRef = { nativeElement: grid };
+
+    component.toggleResponsiveLayout(false);
+
+    expect(component.responsiveLayout).toBeFalse();
+    expect(component.dashboardGridWidthPx).toBe('1200px');
+    expect(layoutService.saveLayout).toHaveBeenCalledWith('main', {
+      widgets: [{ id: 'a', size: '1x1', column: 1, row: 1 }],
+      responsiveLayout: false
     });
   });
 

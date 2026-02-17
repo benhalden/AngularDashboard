@@ -53,7 +53,8 @@ describe('DashboardLayoutService', () => {
       widgets: [
         { id: 'summary', size: '2x1', column: 1, row: 1 },
         { id: 'todo', size: '2x2', column: 3, row: 1 }
-      ]
+      ],
+      responsiveLayout: true
     });
   });
 
@@ -69,7 +70,27 @@ describe('DashboardLayoutService', () => {
       widgets: [
         { id: 'summary', size: '2x2' },
         { id: 'todo', size: '2x2' }
-      ]
+      ],
+      responsiveLayout: true
+    });
+  });
+
+  it('loads persisted responsiveLayout flag when present', () => {
+    userService.getUserSetting.and.returnValue({
+      ...newDashboardSetting,
+      userSettingStringValue: JSON.stringify({
+        sales: {
+          widgets: [{ id: 'summary', size: '2x1', column: 1, row: 1 }],
+          responsiveLayout: false
+        }
+      })
+    });
+
+    const loaded = service.loadLayout('sales');
+
+    expect(loaded).toEqual({
+      widgets: [{ id: 'summary', size: '2x1', column: 1, row: 1 }],
+      responsiveLayout: false
     });
   });
 
@@ -84,7 +105,8 @@ describe('DashboardLayoutService', () => {
     });
 
     service.saveLayout('sales', {
-      widgets: [{ id: 'summary', size: '2x1', column: 1, row: 1 }]
+      widgets: [{ id: 'summary', size: '2x1', column: 1, row: 1 }],
+      responsiveLayout: false
     });
 
     expect(userService.setUserSetting).toHaveBeenCalledTimes(1);
@@ -93,7 +115,8 @@ describe('DashboardLayoutService', () => {
 
     expect(parsed['existing']).toBeTruthy();
     expect(parsed['sales']).toEqual({
-      widgets: [{ id: 'summary', size: '2x1', column: 1, row: 1 }]
+      widgets: [{ id: 'summary', size: '2x1', column: 1, row: 1 }],
+      responsiveLayout: false
     });
   });
 

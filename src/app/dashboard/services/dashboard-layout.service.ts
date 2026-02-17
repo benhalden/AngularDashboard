@@ -5,6 +5,7 @@ import { DashboardWidgetLayoutItem } from '../components/dashboard-widget';
 
 export interface DashboardLayout {
   widgets: DashboardWidgetLayoutItem[];
+  responsiveLayout: boolean;
 }
 
 @Injectable({
@@ -58,7 +59,10 @@ export class DashboardLayoutService {
             return layoutItem;
           });
 
-        return { widgets };
+        return {
+          widgets,
+          responsiveLayout: layoutPayload.responsiveLayout !== false
+        };
       }
 
       if (Array.isArray((layoutPayload as { widgetIds?: unknown[] }).widgetIds)) {
@@ -67,7 +71,10 @@ export class DashboardLayoutService {
           .filter((id): id is string => typeof id === 'string')
           .map((id) => ({ id, size: '2x2' as const }));
 
-        return { widgets };
+        return {
+          widgets,
+          responsiveLayout: true
+        };
       }
 
       return null;
@@ -151,10 +158,45 @@ export class DashboardLayoutService {
         return {};
       }
 
-      const candidate = parsed as { widgets?: unknown; widgetIds?: unknown; [key: string]: unknown };
+      const candidate = parsed as {
+        widgets?: unknown;
+        widgetIds?: unknown;
+        responsiveLayout?: unknown;
+        [key: string]: unknown;
+      };
 
       if (Array.isArray(candidate.widgets) || Array.isArray(candidate.widgetIds)) {
-        return { [dashboardId]: candidate as DashboardLayout };
+        const widgets = Array.isArray(candidate.widgets)
+          ? candidate.widgets
+              .filter((item): item is DashboardWidgetLayoutItem => {
+                return !!item && typeof item.id === 'string' && typeof item.size === 'string';
+              })
+              .map((item) => {
+                const layoutItem: DashboardWidgetLayoutItem = {
+                  id: item.id,
+                  size: item.size
+                };
+
+                if (typeof item.column === 'number' && item.column >= 1) {
+                  layoutItem.column = item.column;
+                }
+
+                if (typeof item.row === 'number' && item.row >= 1) {
+                  layoutItem.row = item.row;
+                }
+
+                return layoutItem;
+              })
+          : ((candidate.widgetIds ?? []) as unknown[])
+              .filter((id): id is string => typeof id === 'string')
+              .map((id) => ({ id, size: '2x2' as const }));
+
+        return {
+          [dashboardId]: {
+            widgets,
+            responsiveLayout: candidate.responsiveLayout !== false
+          }
+        };
       }
 
       return parsed as Record<string, DashboardLayout>;
